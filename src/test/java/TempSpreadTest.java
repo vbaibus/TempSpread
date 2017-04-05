@@ -3,6 +3,7 @@
  */
 
 import com.jayway.jsonpath.Configuration;
+import org.junit.Assert;
 import org.junit.Test;
 import com.jayway.jsonpath.JsonPath;
 
@@ -25,7 +26,12 @@ public class TempSpreadTest {
         for (Integer day: days) {
 
             //Calculating temperature difference for each day
-            Double spread = high.get(iterator).doubleValue() - low.get(iterator).doubleValue();
+            Double spread = 0.0;
+            try {
+               spread  = high.get(iterator).doubleValue() - low.get(iterator).doubleValue();
+            } catch (ArithmeticException e) {
+                Assert.fail("Exception: " + e);
+            }
 
             if (iterator == 0) {
                 maxSpread = spread;
@@ -46,7 +52,7 @@ public class TempSpreadTest {
 
             iterator++;
         }
-
+        Assert.assertTrue("Maximum Temp Spread collection is empty.", spreadByDay.size() > 0);
         System.out.println("Maximum temperature difference is being observed on the following days:" + spreadByDay);
     }
 
