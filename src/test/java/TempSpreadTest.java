@@ -3,10 +3,12 @@
  */
 
 import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.InvalidJsonException;
 import org.junit.Assert;
 import org.junit.Test;
 import com.jayway.jsonpath.JsonPath;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,7 +16,13 @@ public class TempSpreadTest {
 
     @Test
     public void testMaxTempSpread() {
-        Object document = Configuration.defaultConfiguration().jsonProvider().parse(inputJson);
+        Object document = new Object();
+        try {
+            document = Configuration.defaultConfiguration().jsonProvider().parse(inputJson);
+        } catch (InvalidJsonException e) {
+            Assert.fail("Json parsing error: " + e);
+        }
+
         List<Integer> days = JsonPath.read(document, "$.days[*].day" );
         List<Number> high = JsonPath.read(document, "$.days[*].high" );
         List<Number> low = JsonPath.read(document, "$.days[*].low" );
@@ -22,6 +30,7 @@ public class TempSpreadTest {
         HashMap<Integer, Double> spreadByDay = new HashMap<Integer, Double>();
         int iterator = 0;
         Double maxSpread = 0.0;
+        DecimalFormat df = new DecimalFormat("#.##");
 
         for (Integer day: days) {
 
@@ -32,6 +41,9 @@ public class TempSpreadTest {
             } catch (ArithmeticException e) {
                 Assert.fail("Exception: " + e);
             }
+
+            //Rounding double to 2 decimal places
+            spread = Double.valueOf(df.format(spread));
 
             if (iterator == 0) {
                 maxSpread = spread;
@@ -44,6 +56,7 @@ public class TempSpreadTest {
             if (result > 0) { //spread is greater then maxSpread
                 maxSpread = spread;
                 spreadByDay.clear();
+
                 spreadByDay.put(day, spread);
                 //This is needed as there might be more then one day with maxSpread in the same month
             } else if (result == 0) {  //both are equal
